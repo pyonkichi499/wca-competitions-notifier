@@ -7,17 +7,21 @@ from fastapi import FastAPI, HTTPException
 
 from .competition_tracker import CompetitionTracker
 from .kanto_filter import filter_kanto_competitions
+from .logger import get_logger, setup_logging
 from .tweet_formatter import format_tweet
 from .twitter_client import DryRunTwitterClient, TwitterClient
 from .wca_client import fetch_upcoming_japan_competitions
+
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
-    print("WCA Kanto Notifier starting...")
+    setup_logging()
+    logger.info("WCA Kanto Notifier starting...")
     yield
-    print("WCA Kanto Notifier shutting down...")
+    logger.info("WCA Kanto Notifier shutting down...")
 
 
 app = FastAPI(
@@ -50,18 +54,18 @@ async def notify():
     """
     try:
         # 1. Fetch upcoming Japan competitions
-        print("Fetching upcoming Japan competitions...")
+        logger.info("Fetching upcoming Japan competitions...")
         competitions = await fetch_upcoming_japan_competitions()
-        print(f"Found {len(competitions)} upcoming competitions in Japan")
+        logger.info("Found %d upcoming competitions in Japan", len(competitions))
 
         # 2. Filter for Kanto region
         kanto_competitions = filter_kanto_competitions(competitions)
-        print(f"Found {len(kanto_competitions)} competitions in Kanto region")
+        logger.info("Found %d competitions in Kanto region", len(kanto_competitions))
 
         # 3. Find new competitions
         tracker = CompetitionTracker()
         new_competitions = tracker.find_new_competitions(kanto_competitions)
-        print(f"Found {len(new_competitions)} new competitions to notify")
+        logger.info("Found %d new competitions to notify", len(new_competitions))
 
         if not new_competitions:
             return {
@@ -84,7 +88,7 @@ async def notify():
         posted = []
         for comp in new_competitions:
             tweet_text = format_tweet(comp)
-            print(f"Posting tweet for: {comp.name}")
+            logger.info("Posting tweet for: %s", comp.name)
 
             try:
                 result = twitter.post_tweet(tweet_text)
@@ -97,12 +101,12 @@ async def notify():
                     }
                 )
             except Exception as e:
-                print(f"Failed to post tweet for {comp.name}: {e}")
+                logger.error("Failed to post tweet for %s: %s", comp.name, e)
                 # Continue with other competitions even if one fails
 
         # 5. Save state
         tracker.save()
-        print(f"Successfully posted {len(posted)} tweets")
+        logger.info("Successfully posted %d tweets", len(posted))
 
         return {
             "status": "ok",
@@ -116,7 +120,7 @@ async def notify():
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error during notification: {e}")
+        logger.exception("Error during notification")
         raise HTTPException(status_code=500, detail=str(e))
 
 

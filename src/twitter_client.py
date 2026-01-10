@@ -8,6 +8,9 @@ from .config import (
     TWITTER_API_KEY,
     TWITTER_API_SECRET,
 )
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class TwitterClient:
@@ -82,19 +85,15 @@ class DryRunTwitterClient(TwitterClient):
     """Mock Twitter client for testing (doesn't actually post)."""
 
     def post_tweet(self, text: str) -> dict:
-        """Print tweet instead of posting.
+        """Log tweet instead of posting.
 
         Args:
-            text: The tweet text to print.
+            text: The tweet text to log.
 
         Returns:
             Mock response data.
         """
-        print("=" * 50)
-        print("[DRY RUN] Would post tweet:")
-        print("-" * 50)
-        print(text)
-        print("=" * 50)
+        logger.info("[DRY RUN] Would post tweet:\n%s", text)
         return {"id": "dry_run_tweet_id", "text": text}
 
     def is_configured(self) -> bool:
