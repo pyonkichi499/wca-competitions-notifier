@@ -97,20 +97,27 @@ rye run uvicorn src.main:app --reload
 
 ## アーキテクチャ
 
-```
-┌─────────────────┐
-│ Cloud Scheduler │  (1日1回トリガー)
-└────────┬────────┘
-         │ HTTP POST /notify
-         ▼
-┌─────────────────┐
-│   Cloud Run     │
-│                 │
-│  1. WCA API取得 │──→ WCA非公式API (認証不要)
-│  2. 関東フィルタ│
-│  3. 新規検出    │←─→ Cloud Storage (状態管理)
-│  4. Twitter投稿 │──→ Twitter API
-└─────────────────┘
+```mermaid
+flowchart TB
+    scheduler[Cloud Scheduler<br/>1日1回トリガー]
+    cloudrun[Cloud Run]
+    wca[WCA非公式API<br/>認証不要]
+    storage[Cloud Storage<br/>状態管理]
+    twitter[Twitter API]
+
+    scheduler -->|HTTP POST /notify| cloudrun
+    cloudrun -->|1. 大会情報取得| wca
+    cloudrun <-->|2. 通知済み確認| storage
+    cloudrun -->|3. ツイート投稿| twitter
+
+    subgraph cloudrun_process[Cloud Run 処理フロー]
+        direction TB
+        step1[WCA API取得]
+        step2[関東フィルタ]
+        step3[新規検出]
+        step4[Twitter投稿]
+        step1 --> step2 --> step3 --> step4
+    end
 ```
 
 ## 技術スタック
