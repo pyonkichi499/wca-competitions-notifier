@@ -5,11 +5,19 @@ import logging
 import os
 import sys
 from datetime import datetime, timezone
+from typing import Literal
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
-# Cloud Run sets K_SERVICE automatically
-IS_CLOUD_RUN = os.getenv("K_SERVICE") is not None
+LogFormat = Literal["auto", "json", "text"]
+
+
+def is_cloud_run() -> bool:
+    """Check if running in Cloud Run environment.
+
+    Cloud Run sets K_SERVICE automatically.
+    """
+    return os.getenv("K_SERVICE") is not None
 
 
 class CloudRunJsonFormatter(logging.Formatter):
@@ -58,15 +66,40 @@ class LocalFormatter(logging.Formatter):
         )
 
 
-def setup_logging(level: str | None = None) -> None:
-    """Configure logging for the application.
+def create_formatter(
+    format_type: LogFormat = "auto",
+    cloud_run_detector: callable = is_cloud_run,
+) -> logging.Formatter:
+    """Create appropriate formatter based on format type.
 
-    Automatically detects environment:
-    - Cloud Run: JSON structured logs for Cloud Logging
-    - Local: Human-readable text logs
+    Args:
+        format_type: "auto" (detect environment), "json", or "text"
+        cloud_run_detector: Callable to detect Cloud Run environment (for DI/testing)
+
+    Returns:
+        Configured formatter instance.
+    """
+    if format_type == "json":
+        return CloudRunJsonFormatter()
+    elif format_type == "text":
+        return LocalFormatter()
+    else:  # auto
+        if cloud_run_detector():
+            return CloudRunJsonFormatter()
+        return LocalFormatter()
+
+
+def setup_logging(
+    level: str | None = None,
+    format_type: LogFormat = "auto",
+    cloud_run_detector: callable = is_cloud_run,
+) -> None:
+    """Configure logging for the application.
 
     Args:
         level: Log level (DEBUG, INFO, WARNING, ERROR). Defaults to env var or INFO.
+        format_type: "auto" (detect environment), "json", or "text"
+        cloud_run_detector: Callable to detect Cloud Run environment (for DI/testing)
     """
     log_level = level or LOG_LEVEL
 
@@ -76,11 +109,8 @@ def setup_logging(level: str | None = None) -> None:
 
     # Create handler with appropriate formatter
     handler = logging.StreamHandler(sys.stdout)
-
-    if IS_CLOUD_RUN:
-        handler.setFormatter(CloudRunJsonFormatter())
-    else:
-        handler.setFormatter(LocalFormatter())
+    formatter = create_formatter(format_type, cloud_run_detector)
+    handler.setFormatter(formatter)
 
     root_logger.addHandler(handler)
     root_logger.setLevel(log_level)
