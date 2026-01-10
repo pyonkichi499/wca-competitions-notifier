@@ -2,9 +2,13 @@
 
 from dataclasses import dataclass
 from datetime import date
+
 import httpx
 
 from .config import WCA_JAPAN_COMPETITIONS_URL
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -52,8 +56,7 @@ async def fetch_japan_competitions() -> list[Competition]:
             comp = Competition.from_api_response(item)
             competitions.append(comp)
         except (KeyError, ValueError) as e:
-            # Log and skip malformed entries
-            print(f"Skipping malformed competition data: {e}")
+            logger.warning("Skipping malformed competition data: %s", e)
             continue
 
     return competitions

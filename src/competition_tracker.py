@@ -6,7 +6,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import ENV, GCS_BUCKET_NAME, GCS_STATE_FILE, LOCAL_STATE_FILE
+from .logger import get_logger
 from .wca_client import Competition
+
+logger = get_logger(__name__)
 
 
 class StorageBase(ABC):
@@ -52,7 +55,7 @@ class LocalStorage(StorageBase):
                 data = json.load(f)
                 return set(data.get("notified_competitions", []))
         except (json.JSONDecodeError, OSError) as e:
-            print(f"Warning: Failed to load state file: {e}")
+            logger.warning("Failed to load state file: %s", e)
             return set()
 
     def save_notified_ids(self, ids: set[str]) -> None:
@@ -109,7 +112,7 @@ class CloudStorage(StorageBase):
             data = json.loads(content)
             return set(data.get("notified_competitions", []))
         except Exception as e:
-            print(f"Warning: Failed to load from Cloud Storage: {e}")
+            logger.warning("Failed to load from Cloud Storage: %s", e)
             return set()
 
     def save_notified_ids(self, ids: set[str]) -> None:
