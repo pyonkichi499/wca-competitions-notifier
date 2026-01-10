@@ -1,0 +1,1 @@
+# WCA Kanto Competitions Notifier
