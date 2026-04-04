@@ -23,7 +23,10 @@ def format_date(competition: Competition) -> str:
     elif start.year == end.year:
         return f"{start.year}年{start.month}月{start.day}日〜{end.month}月{end.day}日"
     else:
-        return f"{start.year}年{start.month}月{start.day}日〜{end.year}年{end.month}月{end.day}日"
+        return (
+            f"{start.year}年{start.month}月{start.day}日"
+            f"〜{end.year}年{end.month}月{end.day}日"
+        )
 
 
 def format_events(events: list[str], max_events: int = 5) -> str:

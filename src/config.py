@@ -1,6 +1,7 @@
 """Configuration and constants for the WCA Kanto Notifier."""
 
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()

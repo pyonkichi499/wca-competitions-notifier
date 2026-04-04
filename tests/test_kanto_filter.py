@@ -2,8 +2,6 @@
 
 from datetime import date
 
-import pytest
-
 from src.kanto_filter import filter_kanto_competitions, is_kanto_competition
 from src.wca_client import Competition
 

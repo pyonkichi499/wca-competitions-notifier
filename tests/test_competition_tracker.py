@@ -1,10 +1,6 @@
 """Tests for competition_tracker module."""
 
 import json
-import tempfile
-from pathlib import Path
-
-import pytest
 
 from src.competition_tracker import (
     CompetitionTracker,

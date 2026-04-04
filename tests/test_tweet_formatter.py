@@ -2,8 +2,6 @@
 
 from datetime import date
 
-import pytest
-
 from src.tweet_formatter import format_date, format_events, format_tweet
 from src.wca_client import Competition
 
