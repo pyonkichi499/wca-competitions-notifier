@@ -37,7 +37,7 @@ https://www.worldcubeassociation.org/competitions/TokyoSummer2025
 - [x] ローカルテストスクリプト
 
 ### Phase 2: Cloud Runデプロイ
-- [ ] Dockerfile作成
+- [x] Dockerfile作成
 - [ ] Cloud Runへデプロイ
 - [ ] Cloud Storageで状態管理
 - [ ] Secret Managerで認証情報管理
