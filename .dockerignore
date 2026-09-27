@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*.egg-info
+.eggs
+dist
+build
+.venv
+venv
+
+# Rye
+.rye
+*.lock
+
+# IDE
+.vscode
+.idea
+
+# Test
+.pytest_cache
+.coverage
+htmlcov
+tests
+
+# Local data
+data
+.env
+.env.local
+
+# Docs
+*.md
+TODO.md
+LICENSE
+
+# Scripts (not needed in container)
+scripts
